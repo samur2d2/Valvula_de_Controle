@@ -1,3 +1,7 @@
+IRAM_ATTR void SensorCctivated(){
+  contInterrupt++;
+}
+
 String IncrementTime(){
   refSec++;
   if(refSec==60){
@@ -18,5 +22,28 @@ String IncrementTime(){
   if(refHora<10){refHoraSTR="0"; refHoraSTR+=String(refHora);}
   else{refHoraSTR = String(refHora);}
   
-  return(refHoraSTR + ":" + refMinSTR + ":" + refSecSTR);
+  return(refHoraSTR+ ":" +refMinSTR+ ":" +refSecSTR);
+}
+
+String concatWord(String horaCompletaToSend, String randomValue){
+  return (String(mqttClient) + "/" +dataSender+ "/" +horaCompletaToSend+ "/random/" +randomValue);
+}
+
+void CalculaPID(){
+  Input=contInterrupt;
+
+  if((Setpoint <= Input+1) && (Setpoint >= Input-1)){
+    return;
+  }
+
+  erroAtual = Setpoint-Input;
+  somatorioErro+=erroAtual;
+  ganhoKp=erroAtual*Kp;
+  ganhoKi=somatorioErro*Ki;
+  
+  if((Setpoint>Input)&&(referencia>0)){
+    Output=abs(ganhoKp+ganhoKi);
+  }else if((Setpoint < Input)&&(referencia<limitePassos)){
+    Output=abs(ganhoKp+ganhoKi);
+  }
 }
