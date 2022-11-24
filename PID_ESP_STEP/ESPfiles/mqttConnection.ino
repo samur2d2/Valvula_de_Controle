@@ -1,5 +1,6 @@
 //=========================================================================================
 void reconnect() {
+  detachInterrupt(digitalPinToInterrupt(sensor));
   while (!client.connected()) {
     Serial.print("Trying to connect to MQTT Broker... ");
     if (client.connect(mqttClient)) {
@@ -8,8 +9,8 @@ void reconnect() {
       client.subscribe(geralMessage);
       
       String msgToSend = String(mqttClient)+"/espSinc";
-      client.publish(dataToRefPySUB, msgToSend.c_str());
-      Serial.println("Published " + msgToSend + " to topic " + dataToRefPySUB);
+      client.publish(dataToRefPy, msgToSend.c_str());
+      Serial.println("Published " + msgToSend + " to topic " + dataToRefPy);
     }else{
       Serial.print("connection failed, rc=");
       Serial.print(client.state());
@@ -17,6 +18,7 @@ void reconnect() {
       delay(3000);
     }
   }
+  attachInterrupt(digitalPinToInterrupt(sensor), SensorCctivated, FALLING);
 }
 //=========================================================================================
 void callback(char* topic, byte* payload, unsigned int length){
@@ -28,15 +30,16 @@ void callback(char* topic, byte* payload, unsigned int length){
   Serial.println(mensagemRecebida);
 
   int firstParameter=0;
-  String parameter="", value="";
-  IpSender=""; dataSender=""; horaSender=""; valueSender="";
+  //String parameter="", value="";
+  IpSender=""; dataSender=""; horaSender=""; typeSender ="", valueSender="";
    
   for(int i=0; i<mensagemRecebida.length(); i++){
     if(mensagemRecebida[i]=='/'){firstParameter++;i++;}
     if(firstParameter == 0){IpSender += mensagemRecebida[i];}
     else if(firstParameter == 1){dataSender += mensagemRecebida[i];}
     else if(firstParameter == 2){horaSender += mensagemRecebida[i];}
-    else if(firstParameter == 3){valueSender += mensagemRecebida[i];}
+    else if(firstParameter == 3){typeSender += mensagemRecebida[i];}
+    else if(firstParameter == 4){valueSender += mensagemRecebida[i];}
   }
 
   Serial.print("IP: ");
@@ -45,9 +48,11 @@ void callback(char* topic, byte* payload, unsigned int length){
   Serial.println(dataSender);
   Serial.print("Hora: ");
   Serial.println(horaSender);
+  Serial.print("Tipo: ");
+  Serial.println(typeSender);
   Serial.print("Valor: ");
   Serial.println(valueSender);
-  if(IpSender=="step"){
+  if(typeSender=="step"){
     if(valueSender[0] == '+'){
       Serial.print("Sentido horario: ");
       HOR();
@@ -65,6 +70,8 @@ void callback(char* topic, byte* payload, unsigned int length){
     refMin = refMinSTR.toInt();
     refSec = refSecSTR.toInt();
     sincronized=true;
+  }else if(typeSender=="setpoint"){
+    Setpoint=valueSender.toInt();
   }
   
 }
