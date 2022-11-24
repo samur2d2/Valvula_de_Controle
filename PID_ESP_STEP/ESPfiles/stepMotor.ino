@@ -30,12 +30,8 @@ void P1_8(){
 void TesteMotor(int nPassos){
   Serial.println(nPassos);
   ena_A4988();
-  
-  P1_8();
-  
-  delay(10);
   P1_8();
   for (int i=0; i<=nPassos; i++){PASSO();delay(1);}
-  delay(10);
+  contInterrupt = oldContInterrupt;
   disa_A4988();
 }
