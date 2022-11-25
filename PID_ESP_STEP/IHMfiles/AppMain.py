@@ -21,7 +21,7 @@ def MQTTSub():
         msgRecieved = str(msg.payload)[2:-1]
         print("Message from "+msg.topic+": "+msgRecieved)
         ip, eventDay, eventHour, eventType, eventValue = msgRecieved.split("/")
-        if eventType == "input":
+        if eventType == "random":
             presentValue.set(float(eventValue))
     try:
         print("[STATUS] Starting MQTT...")
@@ -87,13 +87,13 @@ def ChamaGrafico():
 
 
 presentValue=DoubleVar()
-presentValue.set(1564.0)
+presentValue.set(0.0)
 objIpPosX, objIpPosY = 170, 50
 labelSetpoint = Label(abaConectar, text="PV:", font=("Calibri", 16), bg=color1).place(x=objIpPosX, y=objIpPosY)
 entrySetpoint = Entry(abaConectar, width=6, textvariable=presentValue, font=("Calibri", 16), justify=RIGHT).place(x=objIpPosX+35, y=objIpPosY+3)
 
 setPoint=DoubleVar()
-setPoint.set(1575.2)
+setPoint.set(0.0)
 objIpPosX, objIpPosY = objIpPosX+2, objIpPosY+35
 labelSetPoint = Label(abaConectar, text="ST:", font=("Calibri", 16), bg=color1).place(x=objIpPosX, y=objIpPosY)
 entrySetPoint = Entry(abaConectar, width=6, textvariable=setPoint, font=("Calibri", 16), justify=RIGHT).place(x=objIpPosX+33, y=objIpPosY+3)
