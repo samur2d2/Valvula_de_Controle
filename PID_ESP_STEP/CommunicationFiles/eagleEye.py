@@ -6,7 +6,7 @@ port = 1883
 client_id = "WatchAll"
 KeepAliveBroker = 60
 
-subs=["192.168.0.10", "192.168.0.11", "message"]
+subs=["192.168.0.10", "192.168.0.11", "178.10.0.10", "message"]
 excludes=["sinc"]
 
 def on_connect(client, userdata, flags, rc):
@@ -16,7 +16,7 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     msgRecieved = str(msg.payload)[2:-1]
-    print("Message: " + msgRecieved)
+    print("From topic '" +msg.topic+ "' - " + msgRecieved)
     ip, eventDay, eventHour, eventType, eventValue = msgRecieved.split("/")
     if ip!="sinc":
         folder = Functions.VerifyDir(ip)
