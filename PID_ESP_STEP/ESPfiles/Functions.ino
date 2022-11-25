@@ -25,25 +25,21 @@ String IncrementTime(){
   return(refHoraSTR+ ":" +refMinSTR+ ":" +refSecSTR);
 }
 
-String concatWord(String horaCompletaToSend, String randomValue){
-  return (String(mqttClient) + "/" +dataSender+ "/" +horaCompletaToSend+ "/random/" +randomValue);
+String concatWord(String horaCompletaToSend, String inputToSend){
+  return (String(mqttClient) + "/" +dataSender+ "/" +horaCompletaToSend+ "/input/" +inputToSend);
 }
 
 void CalculaPID(){
-  Input=contInterrupt;
+  Input=Output;
 
-  if((Setpoint <= Input+1) && (Setpoint >= Input-1)){
-    return;
-  }
-
-  erroAtual = Setpoint-Input;
-  somatorioErro+=erroAtual;
-  ganhoKp=erroAtual*Kp;
-  ganhoKi=somatorioErro*Ki;
-  
-  if((Setpoint>Input)&&(referencia>0)){
+  if((Setpoint != Input+1) || (Setpoint != Input-1)){
+    erroAtual = Setpoint-Input;
+    somatorioErro+=erroAtual;
+    ganhoKp=erroAtual*Kp;
+    ganhoKi=somatorioErro*Ki;
+    
     Output=abs(ganhoKp+ganhoKi);
-  }else if((Setpoint < Input)&&(referencia<limitePassos)){
-    Output=abs(ganhoKp+ganhoKi);
+  }else{
+    Output=Setpoint;
   }
 }

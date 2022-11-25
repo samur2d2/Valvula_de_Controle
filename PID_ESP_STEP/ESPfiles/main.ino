@@ -6,12 +6,12 @@ unsigned long previousMillis = 0;
 const long interval = 1000;
 #define timeBTWsend 1000
 //==================================================== WIFI AND MQTT CONNECTIONS ==========
-//#define ssid "CLARO_2G14C0A1" 
-//#define password "Batatafrita16"
-#define ssid "iniciacao" 
-#define password "12345678"
+#define ssid "CLARO_2G14C0A1" 
+#define password "Batatafrita16"
+//#define ssid "iniciacao" 
+//#define password "12345678"
 #define mqttClient "192.168.0.10"
-#define serverIP "192.168.1.100"
+#define serverIP "192.168.0.68"
 #define port 1883
 //#define mqtt_user ""
 //#define mqtt_password ""
@@ -32,7 +32,7 @@ String randomValue = "";
 String mensagemRecebida = "";
 //==================================================== PID VARIABLES ======================
 double erroAtual, somatorioErro=0, ganhoKp, ganhoKi;
-double Setpoint, Input, Output, oldContInterrupt;
+double Setpoint, Input, Output=0, oldContInterrupt;
 double Kp=0.4, Ki=0.35;
 volatile double contInterrupt = 0;
 double vazaoMax=30, vazaoMin=0;
@@ -55,14 +55,11 @@ void setup()
   digitalWrite(SLP, HIGH);
   disa_A4988();
   rst_A4988();
-  pinMode(sensor, INPUT);
-  Setpoint=20;
+  //pinMode(sensor, INPUT);
+  Setpoint=35;
   client.setServer(serverIP, port);
   client.setCallback(callback);
   setup_wifi();
-  delay(500);
-  //AHR();
-  //TesteMotor(limitePassos);
 }
 //=========================================================================================
 void loop()
@@ -84,44 +81,43 @@ void loop()
       Serial.print("Setpoint: ");
       Serial.println(Setpoint);
       Serial.print("Interrupcoes: ");
-      Serial.println(contInterrupt);
+      Serial.println(Output);
       
       if((Setpoint == Input) || (Setpoint == Input+1) || (Setpoint == Input-1)){
       }else{
         if(Setpoint > Input){
           HOR(); //abre
           somaSubDaRef=false; //subtrai
-          Serial.println("ABRE");
         }else if(Setpoint < Input){
           AHR(); //fecha
           somaSubDaRef=true; //soma
-          Serial.println("FECHA");
         }
         int passos=map(Output,0,vazaoMax,0,500);
         Serial.print("Passos: ");
         Serial.println(passos);
-        if(passos > 0){
-          if((somaSubDaRef == false)&&(passos>referencia)){
-            passos=referencia;
-          }else if((somaSubDaRef == true)&&(passos>(limitePassos-referencia))){
-            passos=limitePassos-referencia;
-          }
-          TesteMotor(passos);
+        if(sincronized == true){
+          msgToSend = concatWord(IncrementTime(), String(Input));
+          Serial.println("Sent ''" +msgToSend+ "'' to topic message");
+          client.publish("message", msgToSend.c_str());
         }
-        if((somaSubDaRef == false)&&(referencia>0)){
-          referencia-=passos;
-        }else if((somaSubDaRef == true)&&(referencia<limitePassos)){
-          referencia+=passos;
-        }
+        
+//        if(passos > 0){
+//          if((somaSubDaRef == false)&&(passos>referencia)){
+//            passos=referencia;
+//          }else if((somaSubDaRef == true)&&(passos>(limitePassos-referencia))){
+//            passos=limitePassos-referencia;
+//          }
+//          TesteMotor(passos);
+//        }
+//        if((somaSubDaRef == false)&&(referencia>0)){
+//          referencia-=passos;
+//        }else if((somaSubDaRef == true)&&(referencia<limitePassos)){
+//          referencia+=passos;
+//        }
+        
       }
-      
-      if(sincronized == true){
-        msgToSend = concatWord(IncrementTime(), String(randomValue));
-        client.publish("message", msgToSend.c_str());
-      }
-  
       oldOut=intOut;
     }
-    contInterrupt=0;
+    //contInterrupt=0;
   }
 }

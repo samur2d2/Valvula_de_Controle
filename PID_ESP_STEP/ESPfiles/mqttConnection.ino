@@ -1,6 +1,6 @@
 //=========================================================================================
 void reconnect() {
-  detachInterrupt(digitalPinToInterrupt(sensor));
+  //detachInterrupt(digitalPinToInterrupt(sensor));
   while (!client.connected()) {
     Serial.print("Trying to connect to MQTT Broker... ");
     if (client.connect(mqttClient)) {
@@ -18,7 +18,7 @@ void reconnect() {
       delay(3000);
     }
   }
-  attachInterrupt(digitalPinToInterrupt(sensor), SensorCctivated, FALLING);
+  //attachInterrupt(digitalPinToInterrupt(sensor), SensorCctivated, FALLING);
 }
 //=========================================================================================
 void callback(char* topic, byte* payload, unsigned int length){

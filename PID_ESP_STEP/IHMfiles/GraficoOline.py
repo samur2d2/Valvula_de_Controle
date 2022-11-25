@@ -7,9 +7,9 @@ with open("./IHMfiles/fileIP.txt", 'r') as fonte:
     folder = Request.VerifyDir(IpOnFile)
 
 day, hour = Request.getTime()
-lerDadosPID = folder[1:]+ "/random_" +day+ ".txt"
+lerDadosPID = folder[1:]+ "/input_" +day+ ".txt"
 lerDadosSET = folder[1:]+ "/setpoint_" +day+ ".txt"
-dadosLast = folder[1:]+ "/LASTrandom_" +day+ ".txt"
+dadosLast = folder[1:]+ "/LASTinput_" +day+ ".txt"
 
 
 def Grafico():

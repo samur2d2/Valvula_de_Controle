@@ -21,7 +21,7 @@ def MQTTSub():
         msgRecieved = str(msg.payload)[2:-1]
         print("Message from "+msg.topic+": "+msgRecieved)
         ip, eventDay, eventHour, eventType, eventValue = msgRecieved.split("/")
-        if eventType == "random":
+        if eventType == "input":
             presentValue.set(float(eventValue))
     try:
         print("[STATUS] Starting MQTT...")
