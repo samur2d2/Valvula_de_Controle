@@ -2,14 +2,14 @@ import matplotlib.pyplot as plotter
 from matplotlib.animation import FuncAnimation
 import returnRequests as Request
 
-with open("./IHMfiles/fileIP.txt", 'r') as fonte:
+with open("../IHMfiles/fileIP.txt", 'r') as fonte:
     IpOnFile = fonte.read()
     folder = Request.VerifyDir(IpOnFile)
 
 day, hour = Request.getTime()
-lerDadosPID = folder[1:]+ "/input_" +day+ ".txt"
-lerDadosSET = folder[1:]+ "/setpoint_" +day+ ".txt"
-dadosLast = folder[1:]+ "/LASTinput_" +day+ ".txt"
+lerDadosPID = folder[0:]+ "/input_" +day+ ".txt"
+lerDadosSET = folder[0:]+ "/setpoint_" +day+ ".txt"
+dadosLast = folder[0:]+ "/LASTinput_" +day+ ".txt"
 
 
 def Grafico():
@@ -88,5 +88,7 @@ def Grafico():
                 limInfSec = "00"
 
         plotter.xlim(limInfHora+":"+limInfMin+":"+limInfSec, limSupHora+":"+limSupMin+":"+limSupSec)
-    ani = FuncAnimation(fig, animar, interval = 500)
+    ani = FuncAnimation(fig, animar, interval = 1000)
     plotter.show()
+
+#Grafico()

@@ -19,9 +19,9 @@ def MQTTSub():
         client.subscribe(topic)
     def on_message(client, userdata, msg):
         msgRecieved = str(msg.payload)[2:-1]
-        print("Message from "+msg.topic+": "+msgRecieved)
         ip, eventDay, eventHour, eventType, eventValue = msgRecieved.split("/")
         if eventType == "input":
+            Request.SaveSetpoint(ip, eventDay, eventHour, eventType, str(setPoint.get()))
             presentValue.set(float(eventValue))
     try:
         print("[STATUS] Starting MQTT...")
@@ -81,7 +81,7 @@ def SoftStart():
     Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(espIP.get()), str(clientPubName.get()))
 
 def ChamaGrafico():
-    with open("./IHMfiles/fileIP.txt", 'w') as fonte:
+    with open("../IHMfiles/fileIP.txt", 'w') as fonte:
         fonte.write(espIP.get())
     Grafico()
 
