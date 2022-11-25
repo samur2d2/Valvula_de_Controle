@@ -14,7 +14,10 @@ dadosLast = folder[1:]+ "/LASTrandom_" +day+ ".txt"
 
 def Grafico():
     fig, ax = plotter.subplots()
-
+    fig.tight_layout()
+    fig.subplots_adjust(bottom=0.25)
+    fig.set_figheight(4)
+    fig.set_figwidth(12)
     def animar(i):
         xPID, yPID = [], []
         xSET, ySET = [], []
@@ -34,54 +37,56 @@ def Grafico():
 
         with open(lerDadosSET, 'r') as fonte:
             dadosSET = fonte.read()
-        for linha in dadosSET.split('; '):
+        for linha in dadosSET.split('\n'):
             if len(linha) == 0:
                 continue
-            xi, yi = linha.split(',')
-            xSET.append(xi)
-            try:
-                ySET.append(float(yi))
-            except:
-                ySET.append(0)
+            for dadosLinha in linha.split('; '):
+                xi, yi = dadosLinha.split(',')
+                xSET.append(xi)
+                try:
+                    ySET.append(float(yi))
+                except:
+                    ySET.append(0)
 
         ax.clear()
         ax.plot(xSET,ySET)
         ax.plot(xPID,yPID) 
 
         for tick in ax.get_xticklabels(): 
-            tick.set_rotation(60)
+            tick.set_rotation(90)
 
-        # last = open(dadosLast, 'r')
-        # lastWrite = last.read()
-        # last.close()
+        last = open(dadosLast, 'r')
+        lastWrite = last.read()
+        last.close()
 
-        # limSupHora = lastWrite[0:2]
-        # limSupMin = lastWrite[3:5]
-        # limSupSec = lastWrite[6:8]
-        # limInfHora = ""
-        # limInfMin = ""
-        # limInfSec = ""
+        limSupHora = lastWrite[0:2]
+        limSupMin = lastWrite[3:5]
+        limSupSec = lastWrite[6:8]
+        limInfHora = ""
+        limInfMin = ""
+        limInfSec = ""
 
-        # if int(limSupSec) >= 30:
-        #     limInfMin = limSupMin
-        #     limInfHora = limSupHora
-        #     if int(limSupSec) < 40:
-        #         limInfSec = str("0"+str(int(limSupSec)-30))
-        #     else:
-        #         limInfSec = str(int(limSupSec)-30)
-        # else:
-        #     if int(limSupMin) > 0:
-        #         limInfMin = str("0"+str(int(limSupMin)-1))
-        #         faltando = 30-int(limSupSec)
-        #         limInfSec = str(60-faltando)
-        #     else:
-        #         limInfMin = "00"
-        #         limInfSec = "00"
-        #         if int(limSupHora) > 0:
-        #             limInfHora = str(int(limInfHora)-1)
-        #         else:
-        #             limInfHora = "00"
+        if int(limSupSec) >= 30:
+            limInfMin = limSupMin
+            limInfHora = limSupHora
+            if int(limSupSec) < 40:
+                limInfSec = str("0"+str(int(limSupSec)-30))
+            else:
+                limInfSec = str(int(limSupSec)-30)
+        else:
+            if int(limSupMin) > 0:
+                faltando = 30-int(limSupSec)
+                limInfSec = str(60-faltando)
+                limInfHora = limSupHora
+                if int(limSupMin) >= 10:
+                    limInfMin = str(int(limSupMin)-1)
+                else:
+                    limInfMin = str("0"+str(int(limSupMin)-1))
+            else:
+                limInfHora = "00"
+                limInfMin = "00"
+                limInfSec = "00"
 
-        # plotter.xlim(limInfHora+":"+limInfMin+":"+limInfSec, limSupHora+":"+limSupMin+":"+limSupSec)
+        plotter.xlim(limInfHora+":"+limInfMin+":"+limInfSec, limSupHora+":"+limSupMin+":"+limSupSec)
     ani = FuncAnimation(fig, animar, interval = 500)
     plotter.show()
