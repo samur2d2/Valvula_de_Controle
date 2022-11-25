@@ -1,11 +1,39 @@
-from tkinter import font
 from GraficoOline import Grafico
-from tkinter import *
-from tkinter import ttk
-from MQTTPub import *
-from MQTTSub import *
 import returnRequests as Request
+import paho.mqtt.client as mqtt
+from tkinter import ttk
+from tkinter import *
+from MQTTPub import *
+import threading
+import sys
 
+
+#===========================================MENU CONECTAR===========================================
+def MQTTSub():
+    Broker = "192.168.0.68"
+    PortaBroker = 1883
+    KeepAliveBroker = 60
+    topic = "message" 
+    def on_connect(client, userdata, flags, rc):
+        print("[STATUS] Connected to Broker.")
+        client.subscribe(topic)
+    def on_message(client, userdata, msg):
+        msgRecieved = str(msg.payload)[2:-1]
+        print("Message from "+msg.topic+": "+msgRecieved)
+        ip, eventDay, eventHour, eventType, eventValue = msgRecieved.split("/")
+        if eventType == "input":
+            presentValue.set(float(eventValue))
+    try:
+        print("[STATUS] Starting MQTT...")
+        client = mqtt.Client()
+        client.on_connect = on_connect
+        client.on_message = on_message
+
+        client.connect(Broker, PortaBroker, KeepAliveBroker)
+        client.loop_forever()
+    except KeyboardInterrupt:
+        sys.exit(0)
+#===========================================MENU CONECTAR===========================================
 
 color1 = "#C6DEFF"
 personalIP = "172.10.0.10"
@@ -35,19 +63,26 @@ def Send():
     Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(espIP.get()), str(clientPubName.get()))
     setPoint.set(setPoint.get())
 
+
 def TurnOn():
-    stringToSend = "Motor/Start"
-    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(topicName.get()), str(clientPubName.get()))
+    day, hourSent = Request.getTime()
+    stringToSend = str("ihm/" + day + "/" + hourSent + "/pid/1")
+    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(espIP.get()), str(clientPubName.get()))
 
 def TurnOff():
-    stringToSend = "Motor/Stop"
-    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(topicName.get()), str(clientPubName.get()))
+    day, hourSent = Request.getTime()
+    stringToSend = str("ihm/" + day + "/" + hourSent + "/pid/0")
+    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(espIP.get()), str(clientPubName.get()))
+
 
 def SoftStart():
-    stringToSend = "Motor/SoftStart"
-    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(topicName.get()), str(clientPubName.get()))
+    day, hourSent = Request.getTime()
+    stringToSend = str("ihm/" + day + "/" + hourSent + "/motor/soft")
+    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(espIP.get()), str(clientPubName.get()))
 
 def ChamaGrafico():
+    with open("./IHMfiles/fileIP.txt", 'w') as fonte:
+        fonte.write(espIP.get())
     Grafico()
 
 
@@ -66,10 +101,10 @@ entrySetPoint = Entry(abaConectar, width=6, textvariable=setPoint, font=("Calibr
 botaoSend = Button(abaConectar, text="✓", command=Send, font=("Calibri", 10)).place(x=objIpPosX+115, y=objIpPosY+7)
 
 
-objIpPosX, objIpPosY = 70, 200
+objIpPosX, objIpPosY = 140, 200
 botaoTurnOn = Button(abaConectar, text="Turn On", command=TurnOn, font=("Calibri", 12)).place(x=objIpPosX, y=objIpPosY)
 botaoTurnOff = Button(abaConectar, text="Turn Off", command=TurnOff, font=("Calibri", 12)).place(x=objIpPosX+70, y=objIpPosY)
-botaoSoftStart = Button(abaConectar, text="Soft Start", command=SoftStart, font=("Calibri", 12)).place(x=objIpPosX+142, y=objIpPosY)
+#botaoSoftStart = Button(abaConectar, text="Soft Start", command=SoftStart, font=("Calibri", 12)).place(x=objIpPosX+142, y=objIpPosY)
 
 
 botaoGrafico = Button(abaConectar, text="Grafico", command=ChamaGrafico, font=("Calibri", 16)).place(x=250, y=350)
@@ -82,44 +117,47 @@ labelLegenda = Label(abaConectar, text=varAuxConnected.get(), font=("Calibri", 1
 #===========================================MENU DEFINICOES===========================================
 
 def AttKp():
-    stringToSend = "Kp="+str(KpValue.get())
-    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(topicName.get()), str(clientPubName.get()))
+    day, hourSent = Request.getTime()
+    stringToSend = str("ihm/" + day + "/" + hourSent + "/kp/" + str(KpValue.get()))
+    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(espIP.get()), str(clientPubName.get()))
+    KpValue.set(KpValue.get())
 
 def AttKi():
-    stringToSend = "Ki="+str(KiValue.get())
-    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(topicName.get()), str(clientPubName.get()))
+    day, hourSent = Request.getTime()
+    stringToSend = str("ihm/" + day + "/" + hourSent + "/ki/" + str(KiValue.get()))
+    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(espIP.get()), str(clientPubName.get()))
+    KiValue.set(KiValue.get())
 
 def AttKd():
-    stringToSend = "Kd="+str(KdValue.get())
-    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(topicName.get()), str(clientPubName.get()))
-
-def Receber():
-    run()
+    day, hourSent = Request.getTime()
+    stringToSend = str("ihm/" + day + "/" + hourSent + "/kd/" + str(KdValue.get()))
+    Sent(stringToSend, str(ipNum.get()), int(portNum.get()), str(espIP.get()), str(clientPubName.get()))
+    KdValue.set(KdValue.get())
 
 
 KpValue=DoubleVar()
-KpValue.set(0.0)
+KpValue.set(0.4)
 objIpPosX, objIpPosY = 20, 10
 labelKpValue = Label(abaDefinicoes, text="Kp:", font=("Calibri", 14), bg=color1).place(x=objIpPosX, y=objIpPosY)
-entryKpValue = Entry(abaDefinicoes, width=5, textvariable=KpValue, font=("Calibri", 14), justify=RIGHT).place(x=objIpPosX, y=objIpPosY+25)
+entryKpValue = Entry(abaDefinicoes, width=5, textvariable=KpValue, font=("Calibri", 14), justify=RIGHT, state=DISABLED).place(x=objIpPosX, y=objIpPosY+25)
 
-botaoAtualizar = Button(abaDefinicoes, text="Atualizar", command=AttKp).place(x=objIpPosX+65, y=objIpPosY+27)
+botaoAtualizar = Button(abaDefinicoes, text="Atualizar", command=AttKp, state=DISABLED).place(x=objIpPosX+65, y=objIpPosY+27)
 
 KiValue=DoubleVar()
-KiValue.set(0.0)
+KiValue.set(0.5)
 objIpPosX, objIpPosY = 20, objIpPosY+55
 labelKiValue = Label(abaDefinicoes, text="Ki:", font=("Calibri", 14), bg=color1).place(x=objIpPosX, y=objIpPosY)
-entryKiValue = Entry(abaDefinicoes, width=5, textvariable=KiValue, font=("Calibri", 14), justify=RIGHT).place(x=objIpPosX, y=objIpPosY+25)
+entryKiValue = Entry(abaDefinicoes, width=5, textvariable=KiValue, font=("Calibri", 14), justify=RIGHT, state=DISABLED).place(x=objIpPosX, y=objIpPosY+25)
 
-botaoAtualizar = Button(abaDefinicoes, text="Atualizar", command=AttKi).place(x=objIpPosX+65, y=objIpPosY+27)
+botaoAtualizar = Button(abaDefinicoes, text="Atualizar", command=AttKi, state=DISABLED).place(x=objIpPosX+65, y=objIpPosY+27)
 
 KdValue=DoubleVar()
 KdValue.set(0.0)
 objIpPosX, objIpPosY = 20, objIpPosY+55
 labelKdValue = Label(abaDefinicoes, text="Kd:", font=("Calibri", 14), bg=color1).place(x=objIpPosX, y=objIpPosY)
-entryKdValue = Entry(abaDefinicoes, width=5, textvariable=KdValue, font=("Calibri", 14), justify=RIGHT).place(x=objIpPosX, y=objIpPosY+25)
+entryKdValue = Entry(abaDefinicoes, width=5, textvariable=KdValue, font=("Calibri", 14), justify=RIGHT, state=DISABLED).place(x=objIpPosX, y=objIpPosY+25)
 
-botaoAtualizar = Button(abaDefinicoes, text="Atualizar", command=AttKd).place(x=objIpPosX+65, y=objIpPosY+27)
+botaoAtualizar = Button(abaDefinicoes, text="Atualizar", command=AttKd, state=DISABLED).place(x=objIpPosX+65, y=objIpPosY+27)
 
 
 objIpPosX, objIpPosY = 20, 330
@@ -132,53 +170,48 @@ labelLegenda = Label(abaDefinicoes, text="status: ", font=("Calibri", 10), bg=co
 labelLegenda = Label(abaDefinicoes, text=varAuxConnected.get(), font=("Calibri", 10), bg=color1).place(x=objIpPosX+40, y=objIpPosY)
 
 #===========================================MENU CONFIGS===========================================
-def Conectar():
-    with open("./IHMfiles/fileIP.txt", 'w') as fonte:
-        fonte.write(espIP.get())
-    varAuxConnected.set(conectar(str(ipNum.get()), str(clientPubName.get()), int(portNum.get())))
-    run()
 
 ipNum=StringVar()
 ipNum.set(str(Request.getIP()))
 objIpPosX, objIpPosY = 20, 10
 labelIP = Label(abaconfigurarMqtt, text="Broker IP:", font=("Calibri", 14), bg=color1).place(x=objIpPosX, y=objIpPosY)
-entryIP = Entry(abaconfigurarMqtt, width=12, textvariable=ipNum, font=("Calibri", 14)).place(x=objIpPosX, y=objIpPosY+25)
+entryIP = Entry(abaconfigurarMqtt, width=12, textvariable=ipNum, font=("Calibri", 14), state=DISABLED).place(x=objIpPosX, y=objIpPosY+25)
 
 portNum=StringVar()
 portNum.set(1883)
 objPortPosX, objPortPosY = 170, 10
 labelPorta = Label(abaconfigurarMqtt, text="Porta:", font=("Calibri", 14), bg=color1).place(x=objPortPosX, y=objPortPosY)
-entryPorta = Entry(abaconfigurarMqtt, textvariable=portNum, width=10, font=("Calibri", 14)).place(x=objPortPosX, y=objPortPosY+25)
+entryPorta = Entry(abaconfigurarMqtt, textvariable=portNum, width=10, font=("Calibri", 14), state=DISABLED).place(x=objPortPosX, y=objPortPosY+25)
 
 clientSubName=StringVar()
 clientSubName.set("sampepePub")
 objPubPosX, objPubPosY = 20, 80
 labelClientPub = Label(abaconfigurarMqtt, text="Client Publisher:", font=("Calibri", 14), bg=color1).place(x=objPubPosX, y=objPubPosY)
-entryClientPub = Entry(abaconfigurarMqtt, width=20, textvariable=clientSubName, font=("Calibri", 14)).place(x=objPubPosX, y=objPubPosY+25)
+entryClientPub = Entry(abaconfigurarMqtt, width=20, textvariable=clientSubName, font=("Calibri", 14), state=DISABLED).place(x=objPubPosX, y=objPubPosY+25)
 
 clientPubName=StringVar()
 clientPubName.set("sampepeSub")
 objSubPosX, objSubPosY = 20, 135
 labelClientSub = Label(abaconfigurarMqtt, text="Client Subscriber:", font=("Calibri", 14), bg=color1).place(x=objSubPosX, y=objSubPosY)
-entryClientSub = Entry(abaconfigurarMqtt, width=20, textvariable=clientPubName, font=("Calibri", 14)).place(x=objSubPosX, y=objSubPosY+25)
+entryClientSub = Entry(abaconfigurarMqtt, width=20, textvariable=clientPubName, font=("Calibri", 14), state=DISABLED).place(x=objSubPosX, y=objSubPosY+25)
 
 topicName=StringVar()
 topicName.set("message")
 objTopicPosX, objTopicPosY = 20, 220
 labelTopic = Label(abaconfigurarMqtt, text="Tópico:", font=("Calibri", 14), bg=color1).place(x=objTopicPosX, y=objTopicPosY)
-entryTopic = Entry(abaconfigurarMqtt, width=13, textvariable=topicName, font=("Calibri", 14)).place(x=objTopicPosX, y=objTopicPosY+25)
+entryTopic = Entry(abaconfigurarMqtt, width=13, textvariable=topicName, font=("Calibri", 14), state=DISABLED).place(x=objTopicPosX, y=objTopicPosY+25)
 
 espIP=StringVar()
 espIP.set("192.168.0.10")
 objTopicPosX, objTopicPosY = 170, 220
 labelTopic = Label(abaconfigurarMqtt, text="Actuator IP:", font=("Calibri", 14), bg=color1).place(x=objTopicPosX, y=objTopicPosY)
-entryTopic = Entry(abaconfigurarMqtt, width=15, textvariable=espIP, font=("Calibri", 14)).place(x=objTopicPosX, y=objTopicPosY+25)
-
-objTopicPosX, objTopicPosY = 50, 330
-botaoConectar = Button(abaconfigurarMqtt, text="Connect", width=30, command=Conectar, font=("Calibri", 12)).place(x=objTopicPosX, y=objTopicPosY)
+entryTopic = Entry(abaconfigurarMqtt, width=15, textvariable=espIP, font=("Calibri", 14), state=DISABLED).place(x=objTopicPosX, y=objTopicPosY+25)
 
 objIpPosX, objIpPosY = 10, 430
 labelLegenda = Label(abaconfigurarMqtt, text="status: ", font=("Calibri", 10), bg=color1).place(x=objIpPosX, y=objIpPosY)
 labelLegenda = Label(abaconfigurarMqtt, text=varAuxConnected.get(), font=("Calibri", 10), bg=color1).place(x=objIpPosX+40, y=objIpPosY)
 
+
+
+threading.Thread(target=MQTTSub).start()
 app.mainloop()
